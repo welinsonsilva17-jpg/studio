@@ -82,7 +82,7 @@ export function ReceiptPreview({ data }: ReceiptPreviewProps) {
   const {
     sellerName, sellerCpf, sellerRg, sellerRgEmitter, sellerAddress, sellerNumber, sellerComplement, sellerNeighborhood, sellerCity, sellerState, sellerCep,
     buyerName, buyerCpf, buyerRg, buyerRgEmitter, buyerAddress, buyerNumber, buyerComplement, buyerNeighborhood, buyerCity, buyerState, buyerCep,
-    propertyAddress, propertyValue, isDigitalSignature
+    propertyAddress, propertyValue, signatureLocation, isDigitalSignature
   } = data;
 
   const valueInWords = convertToWords(propertyValue);
@@ -116,7 +116,7 @@ export function ReceiptPreview({ data }: ReceiptPreviewProps) {
       </div>
 
       <p className="text-center mt-12 mb-16">
-        {sellerCity}, {currentDate}.
+        {signatureLocation}, {currentDate}.
       </p>
 
       {/* ASSINATURAS */}
@@ -147,3 +147,5 @@ export function ReceiptPreview({ data }: ReceiptPreviewProps) {
     </div>
   );
 }
+
+    

@@ -38,6 +38,7 @@ export function ReceiptGenerator() {
     buyerCep: '',
     propertyAddress: '',
     propertyValue: '',
+    signatureLocation: '',
     isDigitalSignature: false,
   });
   const [receiptData, setReceiptData] = useState<any>(null);
@@ -55,7 +56,7 @@ export function ReceiptGenerator() {
     const requiredFields = [
       'sellerName', 'sellerCpf', 'sellerRg', 'sellerRgEmitter', 'sellerAddress', 'sellerNumber', 'sellerNeighborhood', 'sellerCity', 'sellerState', 'sellerCep',
       'buyerName', 'buyerCpf', 'buyerRg', 'buyerRgEmitter', 'buyerAddress', 'buyerNumber', 'buyerNeighborhood', 'buyerCity', 'buyerState', 'buyerCep',
-      'propertyAddress', 'propertyValue'
+      'propertyAddress', 'propertyValue', 'signatureLocation'
     ];
 
     if (requiredFields.some(field => !formData[field as keyof typeof formData])) {
@@ -167,6 +168,7 @@ export function ReceiptGenerator() {
               </div>
             </div>
           </div>
+
           {/* Comprador */}
           <div>
             <h3 className="text-lg font-medium text-primary">Dados do Comprador(a)</h3>
@@ -197,7 +199,7 @@ export function ReceiptGenerator() {
                 <Input required id="buyerNumber" value={formData.buyerNumber} onChange={handleChange} placeholder="Ex: 123" />
               </div>
                <div className="space-y-2">
-                <Label htmlFor="buyerComplement">Complemento</Label>
+                <Label htmlFor="sellerComplement">Complemento</Label>
                 <Input id="buyerComplement" value={formData.buyerComplement} onChange={handleChange} placeholder="Apto, Bloco, etc." />
               </div>
                <div className="space-y-2">
@@ -224,7 +226,7 @@ export function ReceiptGenerator() {
             <h3 className="text-lg font-medium text-primary">Dados do Imóvel</h3>
             <Separator className="my-2" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="propertyAddress">Endereço Completo do Imóvel</Label>
                 <Input required id="propertyAddress" value={formData.propertyAddress} onChange={handleChange} placeholder="Rua, número, bairro, cidade, estado" />
               </div>
@@ -234,11 +236,22 @@ export function ReceiptGenerator() {
               </div>
             </div>
           </div>
-          <div className="flex items-center space-x-2 pt-4">
-            <Checkbox id="isDigitalSignature" checked={formData.isDigitalSignature} onCheckedChange={handleCheckboxChange} />
-            <Label htmlFor="isDigitalSignature" className="cursor-pointer">
-              Utilizar assinatura digital (com validade jurídica)
-            </Label>
+          
+          <div>
+            <h3 className="text-lg font-medium text-primary">Assinatura</h3>
+            <Separator className="my-2" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="signatureLocation">Local da Assinatura</Label>
+                    <Input required id="signatureLocation" value={formData.signatureLocation} onChange={handleChange} placeholder="Cidade onde o recibo é assinado" />
+                </div>
+                <div className="flex items-center space-x-2 pt-6">
+                    <Checkbox id="isDigitalSignature" checked={formData.isDigitalSignature} onCheckedChange={handleCheckboxChange} />
+                    <Label htmlFor="isDigitalSignature" className="cursor-pointer">
+                    Utilizar assinatura digital (com validade jurídica)
+                    </Label>
+                </div>
+            </div>
           </div>
         </CardContent>
         <CardFooter>
@@ -260,3 +273,5 @@ export function ReceiptGenerator() {
     </div>
   );
 }
+
+    
