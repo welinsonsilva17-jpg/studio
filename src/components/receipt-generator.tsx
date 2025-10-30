@@ -28,6 +28,12 @@ const validateCpf = (cpf: string) => {
   return true;
 };
 
+// Função para validar RG (validação simples de tamanho)
+const validateRg = (rg: string) => {
+  const cleanedRg = rg.replace(/[^\dX]/gi, '');
+  return cleanedRg.length >= 5; // Exemplo: mínimo de 5 caracteres
+};
+
 export function ReceiptGenerator() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -60,6 +66,7 @@ export function ReceiptGenerator() {
   });
   const [receiptData, setReceiptData] = useState<any>(null);
   const [cpfErrors, setCpfErrors] = useState({ seller: false, buyer: false });
+  const [rgErrors, setRgErrors] = useState({ seller: false, buyer: false });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -73,6 +80,17 @@ export function ReceiptGenerator() {
         setCpfErrors(prev => ({ ...prev, [key]: !isValid }));
       } else {
         setCpfErrors(prev => ({...prev, [key]: false}));
+      }
+    }
+
+    if (id === 'sellerRg' || id === 'buyerRg') {
+      const isSeller = id === 'sellerRg';
+      const key = isSeller ? 'seller' : 'buyer';
+       if (value.length > 0) {
+        const isValid = validateRg(value);
+        setRgErrors(prev => ({ ...prev, [key]: !isValid }));
+      } else {
+        setRgErrors(prev => ({...prev, [key]: false}));
       }
     }
   };
@@ -129,11 +147,11 @@ export function ReceiptGenerator() {
       return;
     }
 
-    if (cpfErrors.seller || cpfErrors.buyer) {
+    if (cpfErrors.seller || cpfErrors.buyer || rgErrors.seller || rgErrors.buyer) {
       toast({
         variant: "destructive",
-        title: "CPF Inválido",
-        description: "Por favor, verifique os números de CPF inseridos.",
+        title: "Dados Inválidos",
+        description: "Por favor, verifique os campos destacados em vermelho.",
       });
       return;
     }
@@ -214,7 +232,8 @@ export function ReceiptGenerator() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sellerRg">RG</Label>
-                <Input required id="sellerRg" value={formData.sellerRg} onChange={handleChange} placeholder="00.000.000-0" />
+                <Input required id="sellerRg" value={formData.sellerRg} onChange={handleChange} placeholder="00.000.000-0" className={rgErrors.seller ? 'border-destructive' : ''} />
+                {rgErrors.seller && <p className="text-xs text-destructive">RG inválido</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sellerRgEmitter">Órgão Expedidor</Label>
@@ -277,7 +296,8 @@ export function ReceiptGenerator() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="buyerRg">RG</Label>
-                <Input required id="buyerRg" value={formData.buyerRg} onChange={handleChange} placeholder="00.000.000-0" />
+                <Input required id="buyerRg" value={formData.buyerRg} onChange={handleChange} placeholder="00.000.000-0" className={rgErrors.buyer ? 'border-destructive' : ''} />
+                {rgErrors.buyer && <p className="text-xs text-destructive">RG inválido</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="buyerRgEmitter">Órgão Expedidor</Label>
@@ -366,5 +386,3 @@ export function ReceiptGenerator() {
     </div>
   );
 }
-
-    
