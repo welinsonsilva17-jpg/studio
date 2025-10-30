@@ -15,8 +15,26 @@ export function ReceiptGenerator() {
   const [formData, setFormData] = useState({
     sellerName: '',
     sellerCpf: '',
+    sellerRg: '',
+    sellerRgEmitter: '',
+    sellerAddress: '',
+    sellerNumber: '',
+    sellerComplement: '',
+    sellerNeighborhood: '',
+    sellerCity: '',
+    sellerState: '',
+    sellerCep: '',
     buyerName: '',
     buyerCpf: '',
+    buyerRg: '',
+    buyerRgEmitter: '',
+    buyerAddress: '',
+    buyerNumber: '',
+    buyerComplement: '',
+    buyerNeighborhood: '',
+    buyerCity: '',
+    buyerState: '',
+    buyerCep: '',
     propertyAddress: '',
     propertyValue: '',
     isDigitalSignature: false,
@@ -51,8 +69,13 @@ export function ReceiptGenerator() {
   }
 
   const generateReceipt = () => {
-    const { sellerName, sellerCpf, buyerName, buyerCpf, propertyAddress, propertyValue } = formData;
-    if(!sellerName || !sellerCpf || !buyerName || !buyerCpf || !propertyAddress || !propertyValue) {
+    const requiredFields = [
+      'sellerName', 'sellerCpf', 'sellerRg', 'sellerRgEmitter', 'sellerAddress', 'sellerNumber', 'sellerNeighborhood', 'sellerCity', 'sellerState', 'sellerCep',
+      'buyerName', 'buyerCpf', 'buyerRg', 'buyerRgEmitter', 'buyerAddress', 'buyerNumber', 'buyerNeighborhood', 'buyerCity', 'buyerState', 'buyerCep',
+      'propertyAddress', 'propertyValue'
+    ];
+
+    if (requiredFields.some(field => !formData[field as keyof typeof formData])) {
       toast({
         variant: "destructive",
         title: "Campos Incompletos",
@@ -61,14 +84,31 @@ export function ReceiptGenerator() {
       return;
     }
 
+    const {
+      sellerName, sellerCpf, sellerRg, sellerRgEmitter, sellerAddress, sellerNumber, sellerComplement, sellerNeighborhood, sellerCity, sellerState, sellerCep,
+      buyerName, buyerCpf, buyerRg, buyerRgEmitter, buyerAddress, buyerNumber, buyerComplement, buyerNeighborhood, buyerCity, buyerState, buyerCep,
+      propertyAddress, propertyValue
+    } = formData;
+
     const valueInWords = convertToWords(propertyValue);
     const formattedValue = formatCurrency(propertyValue);
+    const fullSellerAddress = `${sellerAddress}, nº ${sellerNumber}${sellerComplement ? `, ${sellerComplement}` : ''} - ${sellerNeighborhood}, ${sellerCity}/${sellerState} - CEP: ${sellerCep}`;
+    const fullBuyerAddress = `${buyerAddress}, nº ${buyerNumber}${buyerComplement ? `, ${buyerComplement}` : ''} - ${buyerNeighborhood}, ${buyerCity}/${buyerState} - CEP: ${buyerCep}`;
+
 
     const receiptText = `
 RECIBO DE COMPRA E VENDA DE IMÓVEL
 
-Eu, ${sellerName}, portador(a) do CPF nº ${sellerCpf}, declaro para os devidos fins que recebi de ${buyerName}, portador(a) do CPF nº ${buyerCpf}, a quantia de ${formattedValue} (${valueInWords}), referente à venda do imóvel localizado no endereço ${propertyAddress}.
+VENDEDOR(A):
+Eu, ${sellerName}, portador(a) do RG nº ${sellerRg} (expedido por ${sellerRgEmitter}) e do CPF nº ${sellerCpf}, residente e domiciliado(a) no endereço ${fullSellerAddress}.
 
+COMPRADOR(A):
+${buyerName}, portador(a) do RG nº ${buyerRg} (expedido por ${buyerRgEmitter}) e do CPF nº ${buyerCpf}, residente e domiciliado(a) no endereço ${fullBuyerAddress}.
+
+OBJETO DA TRANSAÇÃO:
+Declaro para os devidos fins que recebi de ${buyerName} a quantia de ${formattedValue} (${valueInWords}), referente à venda do imóvel localizado no endereço ${propertyAddress}.
+
+QUITAÇÃO:
 Este pagamento representa a quitação total e irrevogável do valor acordado para a transação do referido imóvel, não restando qualquer pendência financeira entre as partes.
 
 Local e Data: ____________________________
@@ -119,10 +159,11 @@ ${formData.isDigitalSignature
           <CardTitle>Gerador de Recibo de Venda de Imóvel</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Vendedor */}
           <div>
             <h3 className="text-lg font-medium text-primary">Dados do Vendedor(a)</h3>
             <Separator className="my-2" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="sellerName">Nome Completo</Label>
                 <Input required id="sellerName" value={formData.sellerName} onChange={handleChange} placeholder="Nome completo do vendedor" />
@@ -131,12 +172,49 @@ ${formData.isDigitalSignature
                 <Label htmlFor="sellerCpf">CPF</Label>
                 <Input required id="sellerCpf" value={formData.sellerCpf} onChange={handleChange} placeholder="000.000.000-00" />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="sellerRg">RG</Label>
+                <Input required id="sellerRg" value={formData.sellerRg} onChange={handleChange} placeholder="00.000.000-0" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sellerRgEmitter">Órgão Expedidor</Label>
+                <Input required id="sellerRgEmitter" value={formData.sellerRgEmitter} onChange={handleChange} placeholder="Ex: SSP/SP" />
+              </div>
+               <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="sellerAddress">Logradouro</Label>
+                <Input required id="sellerAddress" value={formData.sellerAddress} onChange={handleChange} placeholder="Rua, Avenida, etc." />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="sellerNumber">Número</Label>
+                <Input required id="sellerNumber" value={formData.sellerNumber} onChange={handleChange} placeholder="Ex: 123" />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="sellerComplement">Complemento</Label>
+                <Input id="sellerComplement" value={formData.sellerComplement} onChange={handleChange} placeholder="Apto, Bloco, etc." />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="sellerNeighborhood">Bairro</Label>
+                <Input required id="sellerNeighborhood" value={formData.sellerNeighborhood} onChange={handleChange} placeholder="Bairro" />
+              </div>
+                <div className="space-y-2">
+                <Label htmlFor="sellerCity">Cidade</Label>
+                <Input required id="sellerCity" value={formData.sellerCity} onChange={handleChange} placeholder="Cidade" />
+              </div>
+                <div className="space-y-2">
+                <Label htmlFor="sellerState">Estado</Label>
+                <Input required id="sellerState" value={formData.sellerState} onChange={handleChange} placeholder="UF" />
+              </div>
+                <div className="space-y-2">
+                <Label htmlFor="sellerCep">CEP</Label>
+                <Input required id="sellerCep" value={formData.sellerCep} onChange={handleChange} placeholder="00000-000" />
+              </div>
             </div>
           </div>
+          {/* Comprador */}
           <div>
             <h3 className="text-lg font-medium text-primary">Dados do Comprador(a)</h3>
             <Separator className="my-2" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="buyerName">Nome Completo</Label>
                 <Input required id="buyerName" value={formData.buyerName} onChange={handleChange} placeholder="Nome completo do comprador" />
@@ -145,8 +223,46 @@ ${formData.isDigitalSignature
                 <Label htmlFor="buyerCpf">CPF</Label>
                 <Input required id="buyerCpf" value={formData.buyerCpf} onChange={handleChange} placeholder="000.000.000-00" />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="buyerRg">RG</Label>
+                <Input required id="buyerRg" value={formData.buyerRg} onChange={handleChange} placeholder="00.000.000-0" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="buyerRgEmitter">Órgão Expedidor</Label>
+                <Input required id="buyerRgEmitter" value={formData.buyerRgEmitter} onChange={handleChange} placeholder="Ex: SSP/SP" />
+              </div>
+               <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="buyerAddress">Logradouro</Label>
+                <Input required id="buyerAddress" value={formData.buyerAddress} onChange={handleChange} placeholder="Rua, Avenida, etc." />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="buyerNumber">Número</Label>
+                <Input required id="buyerNumber" value={formData.buyerNumber} onChange={handleChange} placeholder="Ex: 123" />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="buyerComplement">Complemento</Label>
+                <Input id="buyerComplement" value={formData.buyerComplement} onChange={handleChange} placeholder="Apto, Bloco, etc." />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="buyerNeighborhood">Bairro</Label>
+                <Input required id="buyerNeighborhood" value={formData.buyerNeighborhood} onChange={handleChange} placeholder="Bairro" />
+              </div>
+                <div className="space-y-2">
+                <Label htmlFor="buyerCity">Cidade</Label>
+                <Input required id="buyerCity" value={formData.buyerCity} onChange={handleChange} placeholder="Cidade" />
+              </div>
+                <div className="space-y-2">
+                <Label htmlFor="buyerState">Estado</Label>
+                <Input required id="buyerState" value={formData.buyerState} onChange={handleChange} placeholder="UF" />
+              </div>
+                <div className="space-y-2">
+                <Label htmlFor="buyerCep">CEP</Label>
+                <Input required id="buyerCep" value={formData.buyerCep} onChange={handleChange} placeholder="00000-000" />
+              </div>
             </div>
           </div>
+
+          {/* Imóvel */}
           <div>
             <h3 className="text-lg font-medium text-primary">Dados do Imóvel</h3>
             <Separator className="my-2" />
@@ -187,3 +303,4 @@ ${formData.isDigitalSignature
     </div>
   );
 }
+
