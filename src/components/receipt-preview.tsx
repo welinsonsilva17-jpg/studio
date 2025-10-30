@@ -54,7 +54,7 @@ export function ReceiptPreview({ data }: ReceiptPreviewProps) {
         if (billion > 0) str += (billion > 1 ? convert(billion) + " bilhões" : "um bilhão") + (n % 1000000000 !== 0 ? ", " : "");
         if (million > 0) str += (million > 1 ? convert(million) + " milhões" : "um milhão") + (n % 1000000 !== 0 ? ", " : "");
         if (thousand > 0) str += (thousand > 1 ? convert(thousand) + " mil" : "mil") + (n % 1000 !== 0 ? ", " : "");
-        if (rest > 0) str += (str ? "e " : "") + convert(rest);
+        if (rest > 0) str += (str ? " e " : "") + convert(rest);
 
         return str;
     }
@@ -93,44 +93,41 @@ export function ReceiptPreview({ data }: ReceiptPreviewProps) {
 
 
   return (
-    <div id="receipt-preview" className="bg-white text-black p-8 rounded-lg shadow-lg border border-gray-200 max-w-3xl mx-auto font-serif">
-      <h1 className="text-3xl font-bold text-center mb-8 border-b-2 border-gray-300 pb-4">
+    <div id="receipt-preview" className="bg-white text-gray-800 p-12 rounded-lg shadow-lg border border-gray-200 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold text-center mb-10 border-b-2 border-gray-300 pb-4 text-gray-900 font-serif">
         RECIBO DE COMPRA E VENDA DE IMÓVEL
       </h1>
 
-      <div className="space-y-6 text-base leading-relaxed">
-        {/* VENDEDOR */}
+      <div className="space-y-6 text-base leading-relaxed text-justify">
         <p>
-          Eu, <strong className="font-semibold">{sellerName}</strong>, portador(a) do RG nº <strong className="font-semibold">{sellerRg}</strong> (expedido por {sellerRgEmitter}) e do CPF nº <strong className="font-semibold">{sellerCpf}</strong>, residente e domiciliado(a) no endereço {fullSellerAddress}, declaro para os devidos fins que recebi de <strong className="font-semibold">{buyerName}</strong>, portador(a) do RG nº <strong className="font-semibold">{buyerRg}</strong> (expedido por {buyerRgEmitter}) e do CPF nº <strong className="font-semibold">{buyerCpf}</strong>, residente e domiciliado(a) no endereço {fullBuyerAddress}, a quantia de <strong className="font-semibold">{formattedValue} ({valueInWords})</strong>.
+          Eu, <strong className="font-semibold">{sellerName}</strong>, portador(a) do RG nº <strong className="font-semibold">{sellerRg}</strong> (expedido por {sellerRgEmitter}) e do CPF nº <strong className="font-semibold">{sellerCpf}</strong>, residente e domiciliado(a) em {fullSellerAddress}, declaro para os devidos fins que recebi de <strong className="font-semibold">{buyerName}</strong>, portador(a) do RG nº <strong className="font-semibold">{buyerRg}</strong> (expedido por {buyerRgEmitter}) e do CPF nº <strong className="font-semibold">{buyerCpf}</strong>, residente e domiciliado(a) em {fullBuyerAddress}, a quantia de <strong className="font-semibold">{formattedValue} ({valueInWords})</strong>.
         </p>
 
-        {/* OBJETO */}
         <p>
           A referida quantia é referente ao pagamento integral para a compra e venda do imóvel localizado em <strong className="font-semibold">{propertyAddress}</strong>.
         </p>
 
-        {/* QUITAÇÃO */}
         <p>
-          Este pagamento representa a quitação total, plena, geral e irrevogável do valor acordado para a transação do referido imóvel, não restando qualquer pendência financeira entre as partes, servindo este recibo como prova de tal quitação.
+          Com este pagamento, dou a mais plena, geral e irrevogável quitação do valor acordado para a transação do referido imóvel, nada mais havendo a reclamar no presente ou no futuro. Este recibo serve como prova definitiva da quitação total.
         </p>
       </div>
 
-      <p className="text-center mt-12 mb-16">
+      <p className="text-right mt-12 mb-16">
         {signatureLocation}, {currentDate}.
       </p>
 
       {/* ASSINATURAS */}
-      <div className="flex justify-around items-center mt-16 text-center">
+      <div className="flex justify-around items-center mt-20 text-center">
         <div className="w-2/5">
           <div className="border-t border-gray-400 pt-2">
             <p className="font-semibold">{sellerName}</p>
-            <p className="text-sm">(Vendedor(a))</p>
+            <p className="text-sm text-gray-600">(Vendedor(a))</p>
           </div>
         </div>
         <div className="w-2/5">
           <div className="border-t border-gray-400 pt-2">
             <p className="font-semibold">{buyerName}</p>
-            <p className="text-sm">(Comprador(a))</p>
+            <p className="text-sm text-gray-600">(Comprador(a))</p>
           </div>
         </div>
       </div>
@@ -147,5 +144,3 @@ export function ReceiptPreview({ data }: ReceiptPreviewProps) {
     </div>
   );
 }
-
-    
