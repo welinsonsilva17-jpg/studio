@@ -7,9 +7,26 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { ReceiptPreview } from './receipt-preview';
 import { User, FileText } from 'lucide-react';
+
+// Função para validar CPF
+const validateCpf = (cpf: string) => {
+  cpf = cpf.replace(/[^\d]+/g, '');
+  if (cpf === '' || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let add = 0;
+  for (let i = 0; i < 9; i++) add += parseInt(cpf.charAt(i)) * (10 - i);
+  let rev = 11 - (add % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(cpf.charAt(9))) return false;
+  add = 0;
+  for (let i = 0; i < 10; i++) add += parseInt(cpf.charAt(i)) * (11 - i);
+  rev = 11 - (add % 11);
+  if (rev === 10 || rev === 11) rev = 0;
+  if (rev !== parseInt(cpf.charAt(10))) return false;
+  return true;
+};
 
 export function ReceiptGenerator() {
   const { toast } = useToast();
@@ -42,14 +59,58 @@ export function ReceiptGenerator() {
     isDigitalSignature: false,
   });
   const [receiptData, setReceiptData] = useState<any>(null);
+  const [cpfErrors, setCpfErrors] = useState({ seller: false, buyer: false });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+
+    if (id === 'sellerCpf' || id === 'buyerCpf') {
+      const isSeller = id === 'sellerCpf';
+      const key = isSeller ? 'seller' : 'buyer';
+      if (value.replace(/[^\d]/g, '').length === 11) {
+        const isValid = validateCpf(value);
+        setCpfErrors(prev => ({ ...prev, [key]: !isValid }));
+      } else {
+        setCpfErrors(prev => ({...prev, [key]: false}));
+      }
+    }
   };
 
   const handleCheckboxChange = (checked: boolean | 'indeterminate') => {
     setFormData(prev => ({ ...prev, isDigitalSignature: checked as boolean }));
+  };
+
+  const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>, person: 'seller' | 'buyer') => {
+    const cep = e.target.value.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await response.json();
+      if (!data.erro) {
+        setFormData(prev => ({
+          ...prev,
+          [`${person}Address`]: data.logradouro,
+          [`${person}Neighborhood`]: data.bairro,
+          [`${person}City`]: data.localidade,
+          [`${person}State`]: data.uf,
+        }));
+      } else {
+         toast({
+            variant: "destructive",
+            title: "CEP não encontrado",
+            description: "Não foi possível encontrar o endereço para o CEP informado.",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao buscar CEP:", error);
+      toast({
+            variant: "destructive",
+            title: "Erro de Rede",
+            description: "Não foi possível conectar à API de CEP.",
+        });
+    }
   };
   
   const generateReceipt = () => {
@@ -67,11 +128,20 @@ export function ReceiptGenerator() {
       });
       return;
     }
+
+    if (cpfErrors.seller || cpfErrors.buyer) {
+      toast({
+        variant: "destructive",
+        title: "CPF Inválido",
+        description: "Por favor, verifique os números de CPF inseridos.",
+      });
+      return;
+    }
     setReceiptData(formData);
   };
 
   const handlePrint = () => {
-    const printContent = document.getElementById('receipt-preview');
+    const printContent = document.getElementById('receipt-preview-container');
     if (printContent) {
       const printWindow = window.open('', '_blank');
       if (printWindow) {
@@ -101,23 +171,24 @@ export function ReceiptGenerator() {
               </style>
             </head>
             <body class="bg-white">
-              <div class="p-8 md:p-12 lg:p-16">${printContent.innerHTML}</div>
+              ${printContent.innerHTML}
             </body>
           </html>
         `);
         printWindow.document.close();
         setTimeout(() => {
+          printWindow.focus();
           printWindow.print();
+          // printWindow.close();
         }, 500);
       }
     }
   }
 
-
   return (
     <div className="w-full max-w-5xl space-y-8">
       <div className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl" style={{ fontFamily: "'Playfair Display', serif" }}>Gerador de Recibos</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl font-serif">Gerador de Recibos</h1>
         <p className="mt-3 text-lg text-gray-600">Crie recibos de compra e venda de imóveis com validade jurídica.</p>
       </div>
 
@@ -138,7 +209,8 @@ export function ReceiptGenerator() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sellerCpf">CPF</Label>
-                <Input required id="sellerCpf" value={formData.sellerCpf} onChange={handleChange} placeholder="000.000.000-00" />
+                <Input required id="sellerCpf" value={formData.sellerCpf} onChange={handleChange} placeholder="000.000.000-00" className={cpfErrors.seller ? 'border-destructive' : ''} />
+                {cpfErrors.seller && <p className="text-xs text-destructive">CPF inválido</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sellerRg">RG</Label>
@@ -150,7 +222,7 @@ export function ReceiptGenerator() {
               </div>
                <div className="space-y-2">
                 <Label htmlFor="sellerCep">CEP</Label>
-                <Input required id="sellerCep" value={formData.sellerCep} onChange={handleChange} placeholder="00000-000" />
+                <Input required id="sellerCep" value={formData.sellerCep} onChange={handleChange} onBlur={(e) => handleCepBlur(e, 'seller')} placeholder="00000-000" />
               </div>
                <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="sellerAddress">Logradouro</Label>
@@ -200,7 +272,8 @@ export function ReceiptGenerator() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="buyerCpf">CPF</Label>
-                <Input required id="buyerCpf" value={formData.buyerCpf} onChange={handleChange} placeholder="000.000.000-00" />
+                <Input required id="buyerCpf" value={formData.buyerCpf} onChange={handleChange} placeholder="000.000.000-00" className={cpfErrors.buyer ? 'border-destructive' : ''} />
+                {cpfErrors.buyer && <p className="text-xs text-destructive">CPF inválido</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="buyerRg">RG</Label>
@@ -212,7 +285,7 @@ export function ReceiptGenerator() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="buyerCep">CEP</Label>
-                <Input required id="buyerCep" value={formData.buyerCep} onChange={handleChange} placeholder="00000-000" />
+                <Input required id="buyerCep" value={formData.buyerCep} onChange={handleChange} onBlur={(e) => handleCepBlur(e, 'buyer')} placeholder="00000-000" />
               </div>
                <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="buyerAddress">Logradouro</Label>
@@ -269,8 +342,8 @@ export function ReceiptGenerator() {
                 </div>
           </div>
         </CardContent>
-        <CardFooter className="bg-gray-50 p-6 rounded-b-lg">
-          <Button onClick={generateReceipt} size="lg" className="w-full">Gerar Recibo</Button>
+        <CardFooter className="bg-gray-50/50 p-6 rounded-b-lg border-t">
+          <Button onClick={generateReceipt} size="lg" className="w-full text-base font-semibold">Gerar Recibo</Button>
         </CardFooter>
       </Card>
 
@@ -284,7 +357,7 @@ export function ReceiptGenerator() {
             <Button variant="outline" onClick={handlePrint}>Imprimir / Salvar PDF</Button>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="bg-gray-100 p-8 md:p-12">
+            <div id="receipt-preview-container" className="bg-gray-50 p-8 md:p-12">
               <ReceiptPreview data={receiptData} />
             </div>
           </CardContent>
@@ -293,3 +366,5 @@ export function ReceiptGenerator() {
     </div>
   );
 }
+
+    
