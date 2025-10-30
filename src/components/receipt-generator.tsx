@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { ReceiptPreview } from './receipt-preview';
 
 export function ReceiptGenerator() {
   const { toast } = useToast();
@@ -39,7 +40,7 @@ export function ReceiptGenerator() {
     propertyValue: '',
     isDigitalSignature: false,
   });
-  const [receipt, setReceipt] = useState('');
+  const [receiptData, setReceiptData] = useState<any>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -49,25 +50,7 @@ export function ReceiptGenerator() {
   const handleCheckboxChange = (checked: boolean | 'indeterminate') => {
     setFormData(prev => ({ ...prev, isDigitalSignature: checked as boolean }));
   };
-
-  const formatCurrency = (value: string) => {
-    if (!value) return '';
-    const numberValue = parseFloat(value.replace(/\D/g, '')) / 100;
-    if (isNaN(numberValue)) return '';
-    return numberValue.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
-  };
-
-  const convertToWords = (numStr: string): string => {
-    const num = parseFloat(numStr.replace(/[^\d,-]/g, '').replace(',', '.'));
-    if (isNaN(num)) return '';
-
-    const value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2 }).replace('.',',');
-    return `${value} reais`;
-  }
-
+  
   const generateReceipt = () => {
     const requiredFields = [
       'sellerName', 'sellerCpf', 'sellerRg', 'sellerRgEmitter', 'sellerAddress', 'sellerNumber', 'sellerNeighborhood', 'sellerCity', 'sellerState', 'sellerCep',
@@ -83,74 +66,48 @@ export function ReceiptGenerator() {
       });
       return;
     }
-
-    const {
-      sellerName, sellerCpf, sellerRg, sellerRgEmitter, sellerAddress, sellerNumber, sellerComplement, sellerNeighborhood, sellerCity, sellerState, sellerCep,
-      buyerName, buyerCpf, buyerRg, buyerRgEmitter, buyerAddress, buyerNumber, buyerComplement, buyerNeighborhood, buyerCity, buyerState, buyerCep,
-      propertyAddress, propertyValue
-    } = formData;
-
-    const valueInWords = convertToWords(propertyValue);
-    const formattedValue = formatCurrency(propertyValue);
-    const fullSellerAddress = `${sellerAddress}, nº ${sellerNumber}${sellerComplement ? `, ${sellerComplement}` : ''} - ${sellerNeighborhood}, ${sellerCity}/${sellerState} - CEP: ${sellerCep}`;
-    const fullBuyerAddress = `${buyerAddress}, nº ${buyerNumber}${buyerComplement ? `, ${buyerComplement}` : ''} - ${buyerNeighborhood}, ${buyerCity}/${buyerState} - CEP: ${buyerCep}`;
-
-
-    const receiptText = `
-RECIBO DE COMPRA E VENDA DE IMÓVEL
-
-VENDEDOR(A):
-Eu, ${sellerName}, portador(a) do RG nº ${sellerRg} (expedido por ${sellerRgEmitter}) e do CPF nº ${sellerCpf}, residente e domiciliado(a) no endereço ${fullSellerAddress}.
-
-COMPRADOR(A):
-${buyerName}, portador(a) do RG nº ${buyerRg} (expedido por ${buyerRgEmitter}) e do CPF nº ${buyerCpf}, residente e domiciliado(a) no endereço ${fullBuyerAddress}.
-
-OBJETO DA TRANSAÇÃO:
-Declaro para os devidos fins que recebi de ${buyerName} a quantia de ${formattedValue} (${valueInWords}), referente à venda do imóvel localizado no endereço ${propertyAddress}.
-
-QUITAÇÃO:
-Este pagamento representa a quitação total e irrevogável do valor acordado para a transação do referido imóvel, não restando qualquer pendência financeira entre as partes.
-
-Local e Data: ____________________________
-
-
-_________________________________________
-${sellerName}
-(Vendedor(a))
-
-_________________________________________
-${buyerName}
-(Comprador(a))
-
-${formData.isDigitalSignature
-  ? 'Este documento foi assinado digitalmente, possuindo validade jurídica conforme a legislação vigente.'
-  : 'Para plena validade jurídica, recomenda-se o reconhecimento de firma das assinaturas em cartório.'
-}
-    `;
-    setReceipt(receiptText.trim());
+    setReceiptData(formData);
   };
 
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Recibo de Compra e Venda de Imóvel</title>
-            <style>
-              body { font-family: sans-serif; line-height: 1.6; padding: 2rem; }
-              pre { white-space: pre-wrap; font-family: sans-serif; }
-            </style>
-          </head>
-          <body>
-            <pre>${receipt}</pre>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
+    const printContent = document.getElementById('receipt-preview');
+    if (printContent) {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Recibo de Compra e Venda de Imóvel</title>
+              <script src="https://cdn.tailwindcss.com"></script>
+              <style>
+                @media print {
+                  @page { 
+                    size: A4;
+                    margin: 20mm;
+                  }
+                  body {
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                  }
+                }
+                body {
+                  font-family: Inter, sans-serif;
+                }
+              </style>
+            </head>
+            <body class="bg-white">
+              ${printContent.innerHTML}
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        setTimeout(() => {
+          printWindow.print();
+        }, 250);
+      }
     }
   }
+
 
   return (
     <div className="w-full max-w-4xl space-y-8">
@@ -289,18 +246,17 @@ ${formData.isDigitalSignature
         </CardFooter>
       </Card>
 
-      {receipt && (
+      {receiptData && (
         <Card className="w-full shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Recibo Gerado</CardTitle>
             <Button variant="outline" onClick={handlePrint}>Imprimir / Salvar PDF</Button>
           </CardHeader>
           <CardContent>
-            <pre className="whitespace-pre-wrap rounded-md bg-muted p-4 font-sans text-sm">{receipt}</pre>
+            <ReceiptPreview data={receiptData} />
           </CardContent>
         </Card>
       )}
     </div>
   );
 }
-
