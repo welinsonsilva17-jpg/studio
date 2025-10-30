@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -10,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { ReceiptPreview } from './receipt-preview';
-import { Building, User, FileText, MapPin } from 'lucide-react';
+import { User, FileText } from 'lucide-react';
 
 export function ReceiptGenerator() {
   const { toast } = useToast();
@@ -279,13 +278,13 @@ export function ReceiptGenerator() {
         <Card className="w-full shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between p-6">
             <div>
-              <CardTitle>Recibo Gerado</CardTitle>
+              <CardTitle>Pré-visualização do Recibo</CardTitle>
               <CardDescription>Revise as informações e imprima ou salve o documento.</CardDescription>
             </div>
             <Button variant="outline" onClick={handlePrint}>Imprimir / Salvar PDF</Button>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="bg-gray-100 p-8 md:p-12 lg:p-16">
+            <div className="bg-gray-100 p-8 md:p-12">
               <ReceiptPreview data={receiptData} />
             </div>
           </CardContent>

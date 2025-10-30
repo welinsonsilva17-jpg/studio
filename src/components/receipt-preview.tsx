@@ -1,4 +1,3 @@
-
 'use client';
 
 import { format } from 'date-fns';
@@ -117,14 +116,14 @@ export function ReceiptPreview({ data }: ReceiptPreviewProps) {
       </p>
 
       {/* ASSINATURAS */}
-      <div className="flex justify-around items-center mt-20 text-center">
-        <div className="w-2/5">
+      <div className="flex flex-col md:flex-row justify-around items-center mt-20 text-center gap-12 md:gap-0">
+        <div className="w-4/5 md:w-2/5">
           <div className="border-t border-gray-400 pt-2">
             <p className="font-semibold">{sellerName}</p>
             <p className="text-sm text-gray-600">(Vendedor(a))</p>
           </div>
         </div>
-        <div className="w-2/5">
+        <div className="w-4/5 md:w-2/5">
           <div className="border-t border-gray-400 pt-2">
             <p className="font-semibold">{buyerName}</p>
             <p className="text-sm text-gray-600">(Comprador(a))</p>
